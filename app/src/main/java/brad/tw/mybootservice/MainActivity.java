@@ -1,6 +1,8 @@
 package brad.tw.mybootservice;
 
 import android.Manifest;
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.v4.app.ActivityCompat;
@@ -14,6 +16,7 @@ import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
     private TelephonyManager tmgr;
+    private AccountManager amgr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,21 +25,18 @@ public class MainActivity extends AppCompatActivity {
 
         // Here, thisActivity is the current activity
         if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.READ_PHONE_STATE)
+                Manifest.permission.GET_ACCOUNTS)
                 != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_PHONE_STATE},
+                    new String[]{Manifest.permission.READ_PHONE_STATE,
+                            Manifest.permission.READ_SMS,
+                            Manifest.permission.GET_ACCOUNTS},
                     123);
         }
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.READ_SMS)
-                != PackageManager.PERMISSION_GRANTED) {
 
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_SMS},
-                    123);
-        }
+        amgr = (AccountManager) getSystemService(ACCOUNT_SERVICE);
+
         tmgr = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
         tmgr.listen(new MyPhoneStateListener(),
                 PhoneStateListener.LISTEN_CALL_STATE);
@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCallStateChanged(int state, String incomingNumber) {
             super.onCallStateChanged(state, incomingNumber);
-            switch (state){
+            switch (state) {
                 case TelephonyManager.CALL_STATE_IDLE:
                     Log.v("brad", "等候中");
                     break;
@@ -63,11 +63,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-
-
     }
 
-    private void queryPhoneInfo(){
+    private void queryPhoneInfo() {
         String lineNumber = tmgr.getLine1Number();
         Log.v("brad", "LineNumber ==> " + lineNumber);
         String imei = tmgr.getDeviceId();
@@ -76,12 +74,31 @@ public class MainActivity extends AppCompatActivity {
         Log.v("brad", "IMSI ==> " + imsi);
 
 
-
     }
 
 
-    public void test1(View v){
+    public void test1(View v) {
         queryPhoneInfo();
+
+    }
+
+    public void test2(View v) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.GET_ACCOUNTS) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        Account[] accs = amgr.getAccounts();
+        for (Account acc : accs){
+            String name = acc.name;
+            String type = acc.type;
+            Log.v("brad", name + ":" + type);
+        }
 
     }
 
