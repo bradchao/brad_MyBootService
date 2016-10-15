@@ -3,8 +3,12 @@ package brad.tw.mybootservice;
 import android.Manifest;
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.net.Uri;
+import android.provider.ContactsContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -25,12 +29,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Here, thisActivity is the current activity
         if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.GET_ACCOUNTS)
+                Manifest.permission.READ_CONTACTS)
                 != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.READ_PHONE_STATE,
                             Manifest.permission.READ_SMS,
+                            Manifest.permission.READ_CONTACTS,
                             Manifest.permission.GET_ACCOUNTS},
                     123);
         }
@@ -100,6 +105,20 @@ public class MainActivity extends AppCompatActivity {
             Log.v("brad", name + ":" + type);
         }
 
+    }
+    public void test3(View v){
+        ContentResolver r = getContentResolver();
+        // SQLite => query
+        Uri uri = ContactsContract.CommonDataKinds.Phone.CONTENT_URI;
+        String name = ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME;
+        String tel = ContactsContract.CommonDataKinds.Phone.NUMBER;
+
+        Cursor c = r.query(uri,new String[]{name,tel},null,null,null);
+        while (c.moveToNext()){
+            String cname = c.getString(0);
+            String ctel = c.getString(1);
+            Log.v("brad", cname + ":" + ctel);
+        }
     }
 
 }
