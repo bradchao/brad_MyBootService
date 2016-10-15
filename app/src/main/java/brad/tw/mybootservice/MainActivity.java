@@ -7,8 +7,11 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -17,10 +20,12 @@ import android.telephony.PhoneStateListener;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 
 public class MainActivity extends AppCompatActivity {
     private TelephonyManager tmgr;
     private AccountManager amgr;
+    private ImageView img;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -29,12 +34,13 @@ public class MainActivity extends AppCompatActivity {
 
         // Here, thisActivity is the current activity
         if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.READ_CONTACTS)
+                Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
 
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.READ_PHONE_STATE,
                             Manifest.permission.READ_SMS,
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
                             Manifest.permission.READ_CONTACTS,
                             Manifest.permission.GET_ACCOUNTS},
                     123);
@@ -45,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
         tmgr = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
         tmgr.listen(new MyPhoneStateListener(),
                 PhoneStateListener.LISTEN_CALL_STATE);
+
+        img = (ImageView)findViewById(R.id.img);
 
 
     }
@@ -120,5 +128,25 @@ public class MainActivity extends AppCompatActivity {
             Log.v("brad", cname + ":" + ctel);
         }
     }
+
+    public void test4(View v){
+        ContentResolver r = getContentResolver();
+
+        Uri uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        Cursor c = r.query(uri,null,null,null,null);
+
+        c.moveToLast();
+        String sdfile = c.getString(c.getColumnIndex(MediaStore.Images.Media.DATA));
+        Log.v("brad", "SD File = " + sdfile);
+
+        Bitmap bmp = BitmapFactory.decodeFile(sdfile);
+        img.setImageBitmap(bmp);
+
+
+
+
+
+    }
+
 
 }
